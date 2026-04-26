@@ -39,6 +39,49 @@ docker/
 .github/workflows/
 ```
 
+## Prerequisites
+
+Before setup, you need:
+
+- A GitHub account with a repository for the generated project.
+- A Cloudflare account with your domain added to Cloudflare DNS.
+- A VPS where you can SSH as root or a sudo-capable user.
+- A Cloudflare API token saved as GitHub Secrets.
+
+### Create The Cloudflare API Token
+
+1. Open the Cloudflare dashboard.
+2. Go to **My Profile** -> **API Tokens**.
+3. Click **Create Token**.
+4. Choose **Create Custom Token**.
+5. Add these permissions:
+
+```text
+Account permissions:
+- Cloudflare Pages: Edit
+- Account Settings: Read
+
+Zone permissions:
+- Zone: Read
+- DNS: Edit
+- Page Rules: Edit
+```
+
+6. Under resources, limit the token to your account and the specific zone/domain you will use.
+7. Create the token and copy it once. Do not save it in local files, shell profiles, or notes.
+
+### Save Cloudflare Values In GitHub
+
+From inside your generated project repo:
+
+```bash
+gh secret set CLOUDFLARE_API_TOKEN
+gh secret set CLOUDFLARE_ACCOUNT_ID --body "your_cloudflare_account_id"
+gh secret set CLOUDFLARE_ZONE_ID --body "your_cloudflare_zone_id"
+```
+
+Pasha Stack can check that these GitHub secret names exist. GitHub does not allow reading secret values back, so token permission verification only works if you temporarily export the token locally for preflight.
+
 ## Quick Start
 
 Clone and open the TUI:
