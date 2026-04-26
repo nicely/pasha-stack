@@ -80,6 +80,8 @@ gh secret set CLOUDFLARE_ACCOUNT_ID --body "your_cloudflare_account_id"
 gh secret set CLOUDFLARE_ZONE_ID --body "your_cloudflare_zone_id"
 ```
 
+Note: In Cloudflare, select your domain first, then open **Overview**. The right sidebar has an **API** section where you can find both **Account ID** and **Zone ID**.
+
 Pasha Stack can check that these GitHub secret names exist. GitHub does not allow reading secret values back, so token permission verification only works if you temporarily export the token locally for preflight.
 
 ## Quick Start
