@@ -4,6 +4,7 @@
 [![Docker Swarm](https://img.shields.io/badge/docker-swarm-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/engine/swarm/)
 [![MongoDB](https://img.shields.io/badge/mongodb-ready-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Cloudflare](https://img.shields.io/badge/cloudflare-pages%20%2B%20tunnel-F38020?logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
+[![Hetzner](https://img.shields.io/badge/hetzner-ready-D50C2D?logo=hetzner&logoColor=white)](https://www.hetzner.com/)
 [![TUI](https://img.shields.io/badge/tui-clack-8B5CF6)](https://github.com/bombshell-dev/clack)
 [![Preflight](https://img.shields.io/badge/preflight-automated-brightgreen)](#automated-preflight)
 
