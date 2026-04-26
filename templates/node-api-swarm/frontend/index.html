@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Evliya Celebi</title>
+    <style>
+      :root {
+        --bg: #20140f;
+        --panel: #2b1b14;
+        --ink: #f4dfc8;
+        --muted: #c89f7a;
+        --coffee: #8b5e3c;
+        --foam: #f8ead8;
+        --accent: #d69b5d;
+        --border: rgba(246, 214, 178, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 15% 10%, rgba(214, 155, 93, 0.18), transparent 24rem),
+          radial-gradient(circle at 85% 15%, rgba(248, 234, 216, 0.08), transparent 22rem),
+          linear-gradient(180deg, #160d09 0%, var(--bg) 100%);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        line-height: 1.7;
+      }
+
+      a {
+        color: var(--foam);
+        text-decoration: none;
+      }
+
+      a:hover,
+      a:focus {
+        color: #fff7ed;
+        text-shadow: 0 0 18px rgba(214, 155, 93, 0.55);
+      }
+
+      .page {
+        width: min(920px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 72px 0 36px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(43, 27, 20, 0.86);
+        box-shadow: 0 24px 90px rgba(0, 0, 0, 0.28);
+        padding: clamp(24px, 5vw, 42px);
+      }
+
+      .prompt {
+        color: var(--muted);
+        margin: 0 0 18px;
+      }
+
+      h1 {
+        color: var(--foam);
+        font-size: clamp(42px, 9vw, 92px);
+        letter-spacing: -0.07em;
+        line-height: 0.96;
+        margin: 0 0 18px;
+      }
+
+      .subtitle {
+        color: var(--accent);
+        font-size: clamp(18px, 3vw, 25px);
+        margin: 0 0 28px;
+      }
+
+      .description {
+        max-width: 700px;
+        margin: 0 0 34px;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+
+      .nav a,
+      .link-card {
+        border: 1px solid var(--border);
+        background: rgba(139, 94, 60, 0.2);
+        padding: 10px 13px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin-top: 28px;
+      }
+
+      .link-card span {
+        color: var(--muted);
+        display: block;
+        font-size: 13px;
+      }
+
+      footer {
+        border-top: 1px dashed var(--border);
+        color: var(--muted);
+        font-size: 13px;
+        margin-top: 36px;
+        padding-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="card" aria-labelledby="name">
+        <p class="prompt">$ brew --profile neo-evliya</p>
+        <h1 id="name">Neo Evliya Celebi</h1>
+        <p class="subtitle">A cozy travel notebook for code, cities, and small discoveries.</p>
+        <p class="description">
+          This starter site is a warm little desk: coffee colors, terminal habits, and field notes
+          from a modern wanderer who documents streets, systems, and stories.
+        </p>
+
+        <nav class="nav" aria-label="Primary">
+          <a href="/blog/">/blog</a>
+          <a href="/app/">/app</a>
+        </nav>
+
+        <div class="grid">
+          <a class="link-card" href="/blog/">
+            <span>01 / archive</span>
+            Read short dispatches from the road.
+          </a>
+          <a class="link-card" href="/app/">
+            <span>02 / lab</span>
+            Open the future app placeholder.
+          </a>
+        </div>
+
+        <footer>
+          <p>footer.note: roasted with curiosity, served with monospace.</p>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+tunnel: YOUR_TUNNEL_ID
+credentials-file: /etc/cloudflared/YOUR_TUNNEL_ID.json
+
+ingress:
+  - hostname: {{API_DOMAIN}}
+    service: http://127.0.0.1:{{API_PORT}}
+  - service: http_status:404

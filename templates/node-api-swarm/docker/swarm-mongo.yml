@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongo_root_user
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_root_pass
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+    secrets:
+      - source: mongo_root_user
+        target: mongo_root_user
+      - source: mongo_root_pass
+        target: mongo_root_pass
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh
+          mongodb://$$(cat /run/secrets/mongo_root_user):$$(cat /run/secrets/mongo_root_pass)@localhost:27017/admin
+          --quiet
+          --eval "db.runCommand({ ping: 1 }).ok"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  app_network:
+    name: {{NETWORK_NAME}}
+    external: true
+
+secrets:
+  mongo_root_user:
+    name: {{MONGO_ROOT_USER_SECRET}}
+    external: true
+  mongo_root_pass:
+    name: {{MONGO_ROOT_PASS_SECRET}}
+    external: true

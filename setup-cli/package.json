@@ -1,0 +1,18 @@
+{
+  "name": "pasha-stack-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "pasha-stack": "./src/index.js"
+  },
+  "scripts": {
+    "check": "node --check src/index.js && node --check src/lib/config.js && node --check src/lib/files.js && node --check src/lib/preflight.js && node --check src/lib/progress.js && node --check src/lib/prompts.js && node --check src/lib/runner.js && node --check src/lib/tui.js && node --check src/steps/project.js && node --check src/steps/setup.js && node --check src/steps/status.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.2.0"
+  }
+}

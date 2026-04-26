@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  api:
+    image: {{GHCR_IMAGE}}:latest
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 15s
+        order: start-first
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      MONGODB_URI_FILE: /run/secrets/mongodb_uri
+    secrets:
+      - source: mongodb_uri
+        target: mongodb_uri
+    networks:
+      - app_network
+    ports:
+      - target: 3000
+        published: {{API_PORT}}
+        protocol: tcp
+        mode: ingress
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 15s
+    stop_signal: SIGTERM
+
+networks:
+  app_network:
+    name: {{NETWORK_NAME}}
+    external: true
+
+secrets:
+  mongodb_uri:
+    name: {{MONGODB_URI_SECRET}}
+    external: true
