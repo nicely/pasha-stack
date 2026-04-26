@@ -9,7 +9,9 @@
 
 Pasha Stack is a small VPS bootstrap toolkit with a little Ottoman-flavored ceremony: one command opens the divan, checks the road, scaffolds a project, and prepares a production path through Docker Swarm, MongoDB, GitHub Actions, GHCR, and Cloudflare.
 
-It is designed for solo builders who want a repeatable "new project to live VPS" route without rebuilding the same deployment plumbing every time.
+It is designed for solo builders who want the important production pieces without rebuilding the same deployment plumbing every time: automated preflight checks, project scaffolding, namespaced Swarm services, MongoDB secrets, rolling API deploys, Cloudflare Pages for the frontend, Cloudflare Tunnel for the backend, and main-branch deployment from GitHub.
+
+The architecture is intentionally lean: the frontend is static and served at the edge by Cloudflare, while the backend runs as rolling Docker Swarm services on a VPS. That gives you a practical path from "new repo" to production in minutes, and a setup that can grow far beyond a tiny first server when the product earns more traffic.
 
 ## The Caravan Route
 
