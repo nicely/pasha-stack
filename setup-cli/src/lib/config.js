@@ -48,6 +48,14 @@ export function publicConfig(config) {
       pagesProjectName: config.pagesProjectName,
       appPagesProjectName: config.appPagesProjectName,
       wwwDomain: config.wwwDomain
+    },
+    kubernetes: {
+      namespace: config.kubeNamespace,
+      helmReleaseName: config.helmReleaseName,
+      apiDeploymentName: 'api',
+      apiServiceName: 'api',
+      mongoStatefulSetName: 'mongo',
+      mongoServiceName: 'mongo'
     }
   };
 }
@@ -86,6 +94,7 @@ export function replacements(config) {
 
 export function normalizeConfig(config) {
   const projectSlug = config.projectSlug || slugify(config.projectName);
+  const kubeName = kubernetesName(config.projectName || projectSlug);
   const apiStackName = config.apiStackName || `${projectSlug}_api`;
   const mongoStackName = config.mongoStackName || `${projectSlug}_mongo`;
   const mainDomain = config.mainDomain || 'example.com';
@@ -98,8 +107,8 @@ export function normalizeConfig(config) {
     deploymentTarget,
     projectSlug,
     apiPort: config.apiPort || '3000',
-    pagesProjectName: config.pagesProjectName || `${projectSlug}-pages`,
-    appPagesProjectName: config.appPagesProjectName || `${projectSlug}-app`,
+    pagesProjectName: config.pagesProjectName || `${kubeName}-pages`,
+    appPagesProjectName: config.appPagesProjectName || `${kubeName}-app`,
     wwwDomain: config.wwwDomain || (mainDomain.startsWith('www.') ? mainDomain : `www.${mainDomain}`),
     apiStackName,
     mongoStackName,
@@ -109,10 +118,21 @@ export function normalizeConfig(config) {
     mongoRootUserSecret: config.mongoRootUserSecret || `${projectSlug}_mongo_root_user`,
     mongoRootPassSecret: config.mongoRootPassSecret || `${projectSlug}_mongo_root_pass`,
     mongoUriSecret: config.mongoUriSecret || `${projectSlug}_mongodb_uri`,
-    kubeNamespace: config.kubeNamespace || projectSlug,
-    helmReleaseName: config.helmReleaseName || projectSlug,
+    kubeNamespace: config.kubeNamespace || kubeName,
+    helmReleaseName: config.helmReleaseName || kubeName,
     mongoHost
   };
+}
+
+function kubernetesName(value) {
+  const name = String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 63)
+    .replace(/-+$/g, '');
+
+  return name || 'project';
 }
 
 function slugify(value) {

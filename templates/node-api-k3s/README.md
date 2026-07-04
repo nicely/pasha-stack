@@ -25,8 +25,8 @@ Open `frontend/index.html` for the homepage, `frontend/blog/` for posts, and `fr
 - API domain: `{{API_DOMAIN}}`
 - Main domain: `{{MAIN_DOMAIN}}`
 - App domain: `{{APP_DOMAIN}}`
-- k3s namespace: `{{PROJECT_SLUG}}`
-- Helm release: `{{PROJECT_SLUG}}`
+- k3s namespace: `{{KUBE_NAMESPACE}}`
+- Helm release: `{{HELM_RELEASE_NAME}}`
 - Chart: `charts/pasha-app`
 - Pages project: `{{PAGES_PROJECT_NAME}}`
 - App Pages project: `{{APP_PAGES_PROJECT_NAME}}`
@@ -34,18 +34,18 @@ Open `frontend/index.html` for the homepage, `frontend/blog/` for posts, and `fr
 ## Useful Commands
 
 ```bash
-helm -n {{PROJECT_SLUG}} list
-helm -n {{PROJECT_SLUG}} history {{PROJECT_SLUG}}
-kubectl -n {{PROJECT_SLUG}} get pods
-kubectl -n {{PROJECT_SLUG}} get services
-kubectl -n {{PROJECT_SLUG}} rollout status deployment/api
-kubectl -n {{PROJECT_SLUG}} logs deployment/api -f
+helm -n {{KUBE_NAMESPACE}} list
+helm -n {{KUBE_NAMESPACE}} history {{HELM_RELEASE_NAME}}
+kubectl -n {{KUBE_NAMESPACE}} get pods
+kubectl -n {{KUBE_NAMESPACE}} get services
+kubectl -n {{KUBE_NAMESPACE}} rollout status deployment/api
+kubectl -n {{KUBE_NAMESPACE}} logs deployment/api -f
 curl -s https://{{API_DOMAIN}}/health
 ```
 
 ## Rollback
 
 ```bash
-helm -n {{PROJECT_SLUG}} history {{PROJECT_SLUG}}
-helm -n {{PROJECT_SLUG}} rollback {{PROJECT_SLUG}} <revision>
+helm -n {{KUBE_NAMESPACE}} history {{HELM_RELEASE_NAME}}
+helm -n {{KUBE_NAMESPACE}} rollback {{HELM_RELEASE_NAME}} <revision>
 ```

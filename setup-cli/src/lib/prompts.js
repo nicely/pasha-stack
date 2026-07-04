@@ -164,6 +164,7 @@ async function askSecretTui(label, fallbackRl) {
 
 function buildConfig(config) {
   const projectSlug = slugify(config.projectName);
+  const kubeName = kubernetesName(config.projectName);
   const apiStackName = `${projectSlug}_api`;
   const mongoStackName = `${projectSlug}_mongo`;
   const mainDomain = config.mainDomain || 'example.com';
@@ -177,8 +178,8 @@ function buildConfig(config) {
     projectSlug,
     projectDir: `${config.projectRoot.replace(/\/$/, '')}/${config.projectName}`,
     ghcrImage: config.githubOwner && config.githubRepo ? `ghcr.io/${config.githubOwner}/${config.githubRepo}/api` : '',
-    pagesProjectName: `${projectSlug}-pages`,
-    appPagesProjectName: `${projectSlug}-app`,
+    pagesProjectName: `${kubeName}-pages`,
+    appPagesProjectName: `${kubeName}-app`,
     wwwDomain: mainDomain.startsWith('www.') ? mainDomain : `www.${mainDomain}`,
     apiStackName,
     mongoStackName,
@@ -188,13 +189,24 @@ function buildConfig(config) {
     mongoRootUserSecret: `${projectSlug}_mongo_root_user`,
     mongoRootPassSecret: `${projectSlug}_mongo_root_pass`,
     mongoUriSecret: `${projectSlug}_mongodb_uri`,
-    kubeNamespace: projectSlug,
-    helmReleaseName: projectSlug,
+    kubeNamespace: kubeName,
+    helmReleaseName: kubeName,
     mongoHost,
     mongoUri: config.mongoUser && config.mongoPassword
       ? `mongodb://${config.mongoUser}:${config.mongoPassword}@${mongoHost}:27017/app?authSource=admin`
       : ''
   };
+}
+
+function kubernetesName(value) {
+  const name = String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 63)
+    .replace(/-+$/g, '');
+
+  return name || 'project';
 }
 
 function slugify(value) {

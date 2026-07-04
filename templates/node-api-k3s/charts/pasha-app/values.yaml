@@ -1,6 +1,6 @@
 namespace:
   create: true
-  name: "{{PROJECT_SLUG}}"
+  name: "{{KUBE_NAMESPACE}}"
 
 imagePullSecrets:
   - name: ghcr

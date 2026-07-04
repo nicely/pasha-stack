@@ -100,6 +100,26 @@ Plain YAML and Kustomize should not be generated in the first k3s version unless
 | Swarm rolling update | Kubernetes Deployment rolling update strategy |
 | Swarm rollback | `helm rollback <release>` or `kubectl rollout undo` |
 
+## Generated Naming Rules
+
+For a user project named `comment-export`, generated names should be predictable and safe for each platform:
+
+| Purpose | Example | Rule |
+|---|---|---|
+| Project folder | `comment-export` | User-provided project name |
+| Swarm/internal slug | `comment_export` | Lowercase, non-alphanumeric -> `_` |
+| k3s namespace | `comment-export` | Kubernetes DNS-safe lowercase/hyphen name |
+| Helm release | `comment-export` | Same DNS-safe name as namespace |
+| API Deployment | `api` | Stable name inside namespace |
+| Mongo StatefulSet | `mongo` | Stable name inside namespace |
+| API Service DNS | `api.comment-export.svc.cluster.local` | Kubernetes service + namespace |
+| Mongo Service DNS | `mongo.comment-export.svc.cluster.local` | Kubernetes service + namespace |
+| Cloudflare Pages | `comment-export-pages` | DNS-safe name with suffix |
+| App Pages | `comment-export-app` | DNS-safe name with suffix |
+| Swarm network/secrets | `comment_export_app_network`, `comment_export_mongodb_uri` | Keep Swarm-safe underscore names |
+
+Reason: Docker Swarm names and Kubernetes names have different conventions. Kubernetes namespace and Helm release names must not use underscores, so k3s/Helm uses a separate hyphenated name.
+
 ## Proposed CLI Changes
 
 Add deployment target support to project config:
