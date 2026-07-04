@@ -70,6 +70,9 @@ export function replacements(config) {
     SSH_PORT: config.sshPort,
     MONGO_USER: config.mongoUser,
     MONGO_HOST: config.mongoHost,
+    PROJECT_SLUG: config.projectSlug,
+    KUBE_NAMESPACE: config.kubeNamespace,
+    HELM_RELEASE_NAME: config.helmReleaseName,
     API_STACK_NAME: config.apiStackName,
     MONGO_STACK_NAME: config.mongoStackName,
     API_SERVICE_NAME: config.apiServiceName,
@@ -85,12 +88,14 @@ export function normalizeConfig(config) {
   const projectSlug = config.projectSlug || slugify(config.projectName);
   const apiStackName = config.apiStackName || `${projectSlug}_api`;
   const mongoStackName = config.mongoStackName || `${projectSlug}_mongo`;
-  const mongoHost = config.mongoHost || `${mongoStackName}_mongo`;
   const mainDomain = config.mainDomain || 'example.com';
+  const deploymentTarget = config.deploymentTarget === 'k3s' ? 'k3s' : 'swarm';
+  const mongoHost = config.mongoHost || (deploymentTarget === 'k3s' ? 'mongo' : `${mongoStackName}_mongo`);
 
   return {
     ...config,
     mainDomain,
+    deploymentTarget,
     projectSlug,
     apiPort: config.apiPort || '3000',
     pagesProjectName: config.pagesProjectName || `${projectSlug}-pages`,
@@ -104,6 +109,8 @@ export function normalizeConfig(config) {
     mongoRootUserSecret: config.mongoRootUserSecret || `${projectSlug}_mongo_root_user`,
     mongoRootPassSecret: config.mongoRootPassSecret || `${projectSlug}_mongo_root_pass`,
     mongoUriSecret: config.mongoUriSecret || `${projectSlug}_mongodb_uri`,
+    kubeNamespace: config.kubeNamespace || projectSlug,
+    helmReleaseName: config.helmReleaseName || projectSlug,
     mongoHost
   };
 }

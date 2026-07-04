@@ -17,7 +17,7 @@ Usage:
   pasha-stack setup step <name> [--dry-run]
   pasha-stack status
 
-Setup steps:
+Swarm setup steps:
   system        Install/check base packages
   github        Check GitHub CLI auth
   swarm         Initialize Docker Swarm and overlay network
@@ -26,7 +26,16 @@ Setup steps:
   deploy-user   Create deploy user and GitHub SSH secrets
   ghcr          Log deploy user into GHCR
   cloudflare    Print Cloudflare tunnel/Pages checklist
-  verify        Show verification commands
+  verify        Show Docker Swarm verification commands
+
+k3s + Helm setup steps:
+  k3s              Install/check k3s, kubectl, and Helm
+  helm-namespace   Create Kubernetes namespace
+  helm-secrets     Create Kubernetes secrets for MongoDB and GHCR
+  helm-deploy      Install/upgrade the Helm release
+  helm-deploy-user Configure deploy user kubeconfig access
+  helm-verify      Verify Helm release and Kubernetes rollout
+  observability    Optional Prometheus, Loki, and Grafana add-on
 `;
 
 function parseArgs(argv) {

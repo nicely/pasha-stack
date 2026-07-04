@@ -29,8 +29,8 @@ export function run(command, args = [], { dryRun = false, input, cwd } = {}) {
   });
 }
 
-export async function runShell(command, { dryRun = false } = {}) {
-  await run('sh', ['-c', command], { dryRun });
+export async function runShell(command, { dryRun = false, cwd } = {}) {
+  await run('sh', ['-c', command], { dryRun, cwd });
 }
 
 function quoteArg(arg) {

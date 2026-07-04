@@ -1,0 +1,72 @@
+{{- if .Values.mongo.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.mongo.name }}
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "pasha-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mongo
+spec:
+  serviceName: {{ .Values.mongo.name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "pasha-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mongo
+  template:
+    metadata:
+      labels:
+        {{- include "pasha-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mongo
+    spec:
+      containers:
+        - name: {{ .Values.mongo.name }}
+          image: {{ .Values.mongo.image }}
+          ports:
+            - name: mongo
+              containerPort: {{ .Values.mongo.service.port }}
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongo.auth.existingSecret }}
+                  key: {{ .Values.mongo.auth.usernameKey }}
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongo.auth.existingSecret }}
+                  key: {{ .Values.mongo.auth.passwordKey }}
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mongosh "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin" --quiet --eval "db.runCommand({ ping: 1 }).ok"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - mongosh "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@localhost:27017/admin" --quiet --eval "db.runCommand({ ping: 1 }).ok"
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            timeoutSeconds: 10
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.mongo.persistence.storageClassName }}
+        storageClassName: {{ .Values.mongo.persistence.storageClassName | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.mongo.persistence.size }}
+{{- end }}

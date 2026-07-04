@@ -1,0 +1,77 @@
+name: Deploy Frontend To Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/index.html'
+      - 'frontend/build-blog.js'
+      - 'frontend/blog/**'
+      - '.github/workflows/frontend-pages.yml'
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+  PAGES_PROJECT_NAME: {{PAGES_PROJECT_NAME}}
+  MAIN_CUSTOM_DOMAIN: {{MAIN_DOMAIN}}
+  WWW_CUSTOM_DOMAIN: {{WWW_DOMAIN}}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Verify Cloudflare auth
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          wrangler whoami
+
+      - name: Build blog pages
+        run: node frontend/build-blog.js
+
+      - name: Ensure Pages project exists
+        run: |
+          wrangler pages project create "$PAGES_PROJECT_NAME" \
+            --production-branch main || echo "Pages project may already exist"
+
+      - name: Deploy frontend to Cloudflare Pages
+        run: |
+          wrangler pages deploy frontend \
+            --project-name "$PAGES_PROJECT_NAME" \
+            --branch main \
+            --commit-hash "${GITHUB_SHA}" \
+            --commit-dirty=true
+
+      - name: Attach main custom domains
+        run: |
+          API_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects"
+          AUTH_HEADER="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          attach_domain() {
+            domain="$1"
+
+            if curl -fsS -H "$AUTH_HEADER" "${API_BASE}/${PAGES_PROJECT_NAME}/domains" \
+              | jq -e --arg domain "$domain" '.result[]? | select(.name == $domain)' >/dev/null; then
+              echo "Custom domain already attached: ${domain}"
+            else
+              curl -fsS -X POST \
+                -H "$AUTH_HEADER" \
+                -H "Content-Type: application/json" \
+                --data "{\"name\":\"${domain}\"}" \
+                "${API_BASE}/${PAGES_PROJECT_NAME}/domains"
+            fi
+          }
+
+          attach_domain "$MAIN_CUSTOM_DOMAIN"
+          attach_domain "$WWW_CUSTOM_DOMAIN"

@@ -1,0 +1,96 @@
+name: Build and Deploy API To k3s
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/api/**'
+      - 'charts/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: {{GITHUB_OWNER}}/{{GITHUB_REPO}}/api
+  HELM_RELEASE: {{PROJECT_SLUG}}
+  KUBE_NAMESPACE: {{PROJECT_SLUG}}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/api
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Package Helm chart
+        run: tar -czf /tmp/pasha-app-chart.tgz -C charts pasha-app
+
+      - name: Deploy API over SSH with Helm
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+        run: |
+          IMAGE_REPOSITORY="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          IMAGE_TAG="sha-$(git rev-parse --short HEAD)"
+          echo "Deploying: ${IMAGE_REPOSITORY}:${IMAGE_TAG}"
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key
+
+          scp -i ~/.ssh/deploy_key -P "$SSH_PORT" /tmp/pasha-app-chart.tgz "$SSH_USER@$SSH_HOST:/tmp/pasha-app-chart.tgz"
+
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "IMAGE_REPOSITORY='$IMAGE_REPOSITORY' IMAGE_TAG='$IMAGE_TAG' HELM_RELEASE='${{ env.HELM_RELEASE }}' KUBE_NAMESPACE='${{ env.KUBE_NAMESPACE }}' sh -s" <<'EOF'
+          set -eu
+          rm -rf /tmp/pasha-app-chart
+          mkdir -p /tmp/pasha-app-chart
+          tar -xzf /tmp/pasha-app-chart.tgz -C /tmp/pasha-app-chart
+          helm upgrade --install "$HELM_RELEASE" /tmp/pasha-app-chart/pasha-app \
+            --namespace "$KUBE_NAMESPACE" \
+            --create-namespace \
+            --set api.image.repository="$IMAGE_REPOSITORY" \
+            --set api.image.tag="$IMAGE_TAG"
+          kubectl -n "$KUBE_NAMESPACE" rollout status deployment/api --timeout=120s
+          EOF

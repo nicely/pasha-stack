@@ -1,0 +1,64 @@
+name: Deploy App To Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/app/**'
+      - '.github/workflows/app-pages.yml'
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+  APP_PAGES_PROJECT_NAME: {{APP_PAGES_PROJECT_NAME}}
+  APP_CUSTOM_DOMAIN: {{APP_DOMAIN}}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Verify Cloudflare auth
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          wrangler whoami
+
+      - name: Ensure app Pages project exists
+        run: |
+          wrangler pages project create "$APP_PAGES_PROJECT_NAME" \
+            --production-branch main || echo "Pages project may already exist"
+
+      - name: Deploy app to Cloudflare Pages
+        run: |
+          wrangler pages deploy frontend/app \
+            --project-name "$APP_PAGES_PROJECT_NAME" \
+            --branch main \
+            --commit-hash "${GITHUB_SHA}" \
+            --commit-dirty=true
+
+      - name: Attach app custom domain
+        run: |
+          API_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects"
+          AUTH_HEADER="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          if curl -fsS -H "$AUTH_HEADER" "${API_BASE}/${APP_PAGES_PROJECT_NAME}/domains" \
+            | jq -e --arg domain "$APP_CUSTOM_DOMAIN" '.result[]? | select(.name == $domain)' >/dev/null; then
+            echo "Custom domain already attached: ${APP_CUSTOM_DOMAIN}"
+          else
+            curl -fsS -X POST \
+              -H "$AUTH_HEADER" \
+              -H "Content-Type: application/json" \
+              --data "{\"name\":\"${APP_CUSTOM_DOMAIN}\"}" \
+              "${API_BASE}/${APP_PAGES_PROJECT_NAME}/domains"
+          fi

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Evliya Celebi | App</title>
+    <style>
+      :root {
+        --bg: #20140f;
+        --panel: #2b1b14;
+        --ink: #f4dfc8;
+        --muted: #c89f7a;
+        --foam: #f8ead8;
+        --border: rgba(246, 214, 178, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(214, 155, 93, 0.18), transparent 24rem),
+          linear-gradient(180deg, #160d09 0%, var(--bg) 100%);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        line-height: 1.7;
+      }
+
+      a {
+        color: var(--foam);
+        text-decoration: none;
+      }
+
+      .page {
+        width: min(760px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 72px 0 36px;
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: rgba(43, 27, 20, 0.86);
+        padding: 30px;
+      }
+
+      h1 {
+        color: var(--foam);
+        font-size: clamp(40px, 8vw, 78px);
+        letter-spacing: -0.06em;
+        line-height: 1;
+        margin: 0 0 18px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .nav {
+        border-top: 1px dashed var(--border);
+        margin-top: 34px;
+        padding-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="card">
+        <p class="muted">$ ./start-caravan</p>
+        <h1>The app caravan is packing</h1>
+        <p>
+          Soon this space can become a dashboard, travel log, admin panel, or any small product
+          that wants a warm lamp and a clear route.
+        </p>
+        <p class="muted">status: grinding beans, checking routes, warming containers</p>
+        <p class="nav"><a href="/">cd ..</a> &nbsp; <a href="/blog/">open blog</a></p>
+      </section>
+    </main>
+  </body>
+</html>

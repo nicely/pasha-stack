@@ -18,7 +18,8 @@ export async function createProject({ dryRun = false } = {}) {
     message: `Project directory: ${config.projectDir}`
   });
 
-  await copyTemplate('node-api-swarm', config.projectDir, { dryRun });
+  const templateName = config.deploymentTarget === 'k3s' ? 'node-api-k3s' : 'node-api-swarm';
+  await copyTemplate(templateName, config.projectDir, { dryRun });
 
   if (dryRun) {
     console.log(`[dry-run] render template variables in ${config.projectDir}`);

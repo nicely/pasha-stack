@@ -31,6 +31,8 @@ export async function runPreflight({ scope = 'setup', dryRun = false, config } =
 
 function runAutomaticChecks({ scope, config }) {
   const setupScope = scope === 'setup';
+  const k3sTarget = config?.deploymentTarget === 'k3s';
+  const dockerRequired = setupScope && !k3sTarget;
   const repo = config?.githubOwner && config?.githubRepo
     ? `${config.githubOwner}/${config.githubRepo}`
     : '';
@@ -49,13 +51,13 @@ function runAutomaticChecks({ scope, config }) {
     }),
     checkCommand('docker', ['--version'], {
       label: 'Docker installed',
-      required: setupScope,
-      fix: 'Run setup step system or install docker.io.'
+      required: dockerRequired,
+      fix: k3sTarget ? 'Docker is optional for the k3s target.' : 'Run setup step system or install docker.io.'
     }),
     checkCommand('docker', ['info'], {
       label: 'Docker daemon accessible',
-      required: setupScope,
-      fix: 'Start Docker and make sure this user can access it.'
+      required: dockerRequired,
+      fix: k3sTarget ? 'Docker daemon is optional for the k3s target.' : 'Start Docker and make sure this user can access it.'
     }),
     checkCommand('gh', ['--version'], {
       label: 'GitHub CLI installed',

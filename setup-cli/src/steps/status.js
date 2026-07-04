@@ -7,10 +7,15 @@ const CHECKS = [
   ['Docker daemon', 'docker info --format "{{.ServerVersion}}"'],
   ['Docker Swarm', 'docker info --format "{{.Swarm.LocalNodeState}}"'],
   ['GitHub CLI', 'gh --version'],
+  ['k3s', 'k3s --version'],
+  ['kubectl', 'kubectl version --client'],
+  ['Helm', 'helm version'],
   ['Cloudflared', 'cloudflared --version'],
   ['Stacks', 'docker stack ls'],
   ['Services', 'docker service ls'],
-  ['Secrets', 'docker secret ls']
+  ['Secrets', 'docker secret ls'],
+  ['Kubernetes nodes', 'kubectl get nodes'],
+  ['Kubernetes namespaces', 'kubectl get namespaces']
 ];
 
 export async function showStatus() {

@@ -1,0 +1,43 @@
+namespace:
+  create: true
+  name: "{{PROJECT_SLUG}}"
+
+imagePullSecrets:
+  - name: ghcr
+
+api:
+  name: api
+  replicaCount: 2
+  image:
+    repository: "{{GHCR_IMAGE}}"
+    tag: latest
+    pullPolicy: IfNotPresent
+  containerPort: 3000
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: true
+    className: traefik
+    host: "{{API_DOMAIN}}"
+    path: /
+  env:
+    nodeEnv: production
+  probes:
+    path: /health
+
+mongo:
+  enabled: true
+  name: mongo
+  image: mongo:7
+  service:
+    port: 27017
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  auth:
+    existingSecret: mongodb
+    usernameKey: root-user
+    passwordKey: root-password
+    uriKey: uri

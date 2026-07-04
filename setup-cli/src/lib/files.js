@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,29 +27,18 @@ export async function copyTemplate(name, destination, { dryRun = false } = {}) {
 }
 
 export async function renderTemplateFiles(root, replacements, { dryRun = false } = {}) {
-  const files = [
-    'README.md',
-    'cloudflared-config.yml.example',
-    'backend/api/package.json',
-    'backend/api/src/index.js',
-    'docker/swarm-api.yml',
-    'docker/swarm-mongo.yml',
-    'frontend/index.html',
-    'frontend/blog/index.html',
-    'frontend/blog/posts/evliya-in-istanbul.md',
-    'frontend/build-blog.js',
-    'frontend/app/index.html',
-    '.github/workflows/deploy.yml',
-    '.github/workflows/frontend-pages.yml',
-    '.github/workflows/app-pages.yml'
-  ];
+  const files = await listFiles(root);
 
-  for (const relativePath of files) {
-    const filePath = path.join(root, relativePath);
+  for (const filePath of files) {
     let content = await readFile(filePath, 'utf8');
+    const original = content;
 
     for (const [key, value] of Object.entries(replacements)) {
       content = content.replaceAll(`{{${key}}}`, value ?? '');
+    }
+
+    if (content === original) {
+      continue;
     }
 
     if (dryRun) {
@@ -58,6 +47,34 @@ export async function renderTemplateFiles(root, replacements, { dryRun = false }
       await writeFile(filePath, content);
     }
   }
+}
+
+async function listFiles(root) {
+  const entries = await readdir(root, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const filePath = path.join(root, entry.name);
+
+    if (entry.isDirectory()) {
+      files.push(...await listFiles(filePath));
+    } else if (entry.isFile() && await isTextFile(filePath)) {
+      files.push(filePath);
+    }
+  }
+
+  return files;
+}
+
+async function isTextFile(filePath) {
+  const info = await stat(filePath);
+
+  if (info.size > 1024 * 1024) {
+    return false;
+  }
+
+  const content = await readFile(filePath);
+  return !content.includes(0);
 }
 
 export async function writeJson(filePath, data, { dryRun = false } = {}) {

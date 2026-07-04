@@ -23,7 +23,8 @@ export async function promptForConfig() {
       sshHost: next(''),
       sshPort: next('22'),
       mongoUser: next('admin'),
-      mongoPassword: next('')
+      mongoPassword: next(''),
+      deploymentTarget: next('swarm')
     });
   }
 
@@ -43,6 +44,7 @@ export async function promptForConfig() {
     const sshPort = await askTui('SSH port', '22', rl);
     const mongoUser = await askTui('MongoDB root username', 'admin', rl);
     const mongoPassword = await askSecretTui('MongoDB root password', rl);
+    const deploymentTarget = await askTui('Deployment target (swarm/k3s)', 'swarm', rl);
 
     return buildConfig({
       projectName,
@@ -57,7 +59,8 @@ export async function promptForConfig() {
       sshHost,
       sshPort,
       mongoUser,
-      mongoPassword
+      mongoPassword,
+      deploymentTarget
     });
   } finally {
     rl.close();
@@ -163,12 +166,14 @@ function buildConfig(config) {
   const projectSlug = slugify(config.projectName);
   const apiStackName = `${projectSlug}_api`;
   const mongoStackName = `${projectSlug}_mongo`;
-  const mongoHost = `${mongoStackName}_mongo`;
   const mainDomain = config.mainDomain || 'example.com';
+  const deploymentTarget = config.deploymentTarget === 'k3s' ? 'k3s' : 'swarm';
+  const mongoHost = deploymentTarget === 'k3s' ? 'mongo' : `${mongoStackName}_mongo`;
 
   return {
     ...config,
     mainDomain,
+    deploymentTarget,
     projectSlug,
     projectDir: `${config.projectRoot.replace(/\/$/, '')}/${config.projectName}`,
     ghcrImage: config.githubOwner && config.githubRepo ? `ghcr.io/${config.githubOwner}/${config.githubRepo}/api` : '',
@@ -183,6 +188,8 @@ function buildConfig(config) {
     mongoRootUserSecret: `${projectSlug}_mongo_root_user`,
     mongoRootPassSecret: `${projectSlug}_mongo_root_pass`,
     mongoUriSecret: `${projectSlug}_mongodb_uri`,
+    kubeNamespace: projectSlug,
+    helmReleaseName: projectSlug,
     mongoHost,
     mongoUri: config.mongoUser && config.mongoPassword
       ? `mongodb://${config.mongoUser}:${config.mongoPassword}@${mongoHost}:27017/app?authSource=admin`
