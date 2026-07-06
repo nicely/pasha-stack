@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { cpus, homedir, totalmem } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -7,6 +7,9 @@ const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
 const YELLOW = '\x1b[33m';
 const RESET = '\x1b[0m';
+const MIN_PRODUCTION_CPU_CORES = 2;
+const MIN_PRODUCTION_MEMORY_GIB = 2;
+const MIN_PRODUCTION_DISK_GIB = 20;
 
 export async function runPreflight({ scope = 'setup', dryRun = false, config } = {}) {
   console.log('');
@@ -49,6 +52,9 @@ function runAutomaticChecks({ scope, config }) {
       required: true,
       fix: 'Install git.'
     }),
+    checkCpuCores({ required: setupScope }),
+    checkMemory({ required: setupScope }),
+    checkDiskSpace({ required: setupScope }),
     checkCommand('docker', ['--version'], {
       label: 'Docker installed',
       required: dockerRequired,
@@ -95,6 +101,60 @@ function runAutomaticChecks({ scope, config }) {
     checkCloudflareAccount({ required: false }),
     checkCloudflareZone({ required: false, config })
   ];
+}
+
+function checkCpuCores({ required }) {
+  const count = cpus().length;
+
+  return {
+    label: 'Minimum CPU for small production VPS',
+    required,
+    ok: count >= MIN_PRODUCTION_CPU_CORES,
+    details: `${count} vCPU detected; minimum ${MIN_PRODUCTION_CPU_CORES} vCPU recommended`,
+    fix: 'Use a VPS with at least 2 vCPU for k3s/Swarm, MongoDB, ingress, and deploy tooling.'
+  };
+}
+
+function checkMemory({ required }) {
+  const gib = totalmem() / 1024 / 1024 / 1024;
+
+  return {
+    label: 'Minimum RAM for small production VPS',
+    required,
+    ok: gib >= MIN_PRODUCTION_MEMORY_GIB,
+    details: `${formatGib(gib)} GiB detected; minimum ${MIN_PRODUCTION_MEMORY_GIB} GiB recommended`,
+    fix: 'Use a VPS with at least 2 GiB RAM; 4 GiB is more comfortable for k3s + Traefik + API replicas + MongoDB.'
+  };
+}
+
+function checkDiskSpace({ required }) {
+  const result = spawnSync('df', ['-Pk', '/'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024
+  });
+
+  if (result.status !== 0) {
+    return {
+      label: 'Minimum disk for small production VPS',
+      required,
+      ok: false,
+      details: firstLine(result.stderr) || 'Could not check disk space',
+      fix: 'Ensure df is available and / is readable.'
+    };
+  }
+
+  const lines = result.stdout.trim().split(/\r?\n/);
+  const columns = lines[1]?.trim().split(/\s+/) || [];
+  const availableKib = Number(columns[3] || 0);
+  const availableGib = availableKib / 1024 / 1024;
+
+  return {
+    label: 'Minimum free disk for small production VPS',
+    required,
+    ok: availableGib >= MIN_PRODUCTION_DISK_GIB,
+    details: `${formatGib(availableGib)} GiB free on /; minimum ${MIN_PRODUCTION_DISK_GIB} GiB recommended`,
+    fix: 'Use a VPS with at least 20 GiB free disk for OS packages, images, k3s data, logs, MongoDB data, and backups.'
+  };
 }
 
 function checkCommand(command, args, { label, required, validate, fix }) {
@@ -314,6 +374,10 @@ function parseMajorVersion(output) {
 
 function firstLine(output) {
   return output.split(/\r?\n/).find(Boolean) || '';
+}
+
+function formatGib(value) {
+  return value.toFixed(value >= 10 ? 0 : 1);
 }
 
 function mask(value) {

@@ -36,6 +36,7 @@ Automated checklist:
 
 - Node.js 20+
 - Git
+- Minimum VPS resources for a small production start: 2 vCPU, 2 GiB RAM, 20 GiB free disk
 - Docker installed and daemon accessible
 - GitHub CLI installed and authenticated
 - GitHub scopes include `repo`, `workflow`, `read:packages`
@@ -46,7 +47,7 @@ Automated checklist:
 - Cloudflare API token is valid when `CLOUDFLARE_API_TOKEN` is exported locally
 - Cloudflare account and zone IDs are available when exported locally
 
-All required checks should show green `[OK]` before continuing. Some Cloudflare checks are warnings unless the relevant local environment variables are exported, because GitHub secret values cannot be read back for permission verification. Keeping secrets locally is not safe; prefer `gh secret set` for storage and only export local tokens temporarily when you need verification.
+All required checks should show green `[OK]` before continuing. For k3s + Helm production with near-zero traffic, start with at least 2 vCPU, 2 GiB RAM, and 20 GiB free disk; 2 vCPU, 4 GiB RAM, and 40+ GiB disk is more comfortable. Some Cloudflare checks are warnings unless the relevant local environment variables are exported, because GitHub secret values cannot be read back for permission verification. Keeping secrets locally is not safe; prefer `gh secret set` for storage and only export local tokens temporarily when you need verification.
 
 ## 1. Create A Project
 

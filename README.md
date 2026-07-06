@@ -47,6 +47,7 @@ Before setup, you need:
 - A GitHub account with a repository for the generated project.
 - A Cloudflare account with your domain added to Cloudflare DNS.
 - A VPS where you can SSH as root or a sudo-capable user.
+- For a small production start with near-zero traffic: at least **2 vCPU, 2 GiB RAM, and 20 GiB free disk**. **2 vCPU, 4 GiB RAM, and 40+ GiB disk** is more comfortable for k3s + Traefik + API replicas + MongoDB.
 - A Cloudflare API token saved as GitHub Secrets.
 
 ### Create The Cloudflare API Token
@@ -139,6 +140,7 @@ Checks include:
 
 - Node.js 20+
 - Git
+- Minimum VPS resources: 2 vCPU, 2 GiB RAM, 20 GiB free disk
 - Docker and Docker daemon access
 - GitHub CLI auth
 - GitHub scopes: `repo`, `workflow`, `read:packages`
